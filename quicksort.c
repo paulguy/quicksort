@@ -21,9 +21,7 @@ static inline int findGreaterOrEqual(int *values, int count, int value) {
 
 static void __quickSort(int *values, int count) {
 	int i, j;
-	int greateridx;
-	int pivotloc;
-
+	int pivotloc, pivotend;
 
 	if(count < 2) {
 		return;
@@ -44,24 +42,24 @@ static void __quickSort(int *values, int count) {
 		printf("-> ");*/
 
 		pivotloc = count - 1;
+		pivotend = count - 1;
 
-		for(i = count - 1; i > 0; i--) {
-			if(values[i - 1] > values[pivotloc]) {
-				swap(&values[i - 1], &values[pivotloc]);
+		for(i = 0; i < pivotloc; i++) {
+			if(values[i] > values[pivotloc]) {
+				swap(&values[i], &values[pivotloc - 1]);
+				swap(&values[pivotloc - 1], &values[pivotend]);
+				i--; /* need to evaluate the same spot again */
 				pivotloc--;
-			} else if(values[i - 1] == values[pivotloc]) {
+				pivotend--;
+			} else if(values[i] == values[pivotloc]) {
+				swap(&values[i], &values[pivotloc - 1]);
+				i--; /* need to evaluate the same spot again */
+				pivotloc--;
+			} else if(values[i] < values[pivotloc]) {
 				continue;
-			} else if(values[i - 1] < values[pivotloc]) {
-				greateridx = findGreaterOrEqual(values, i - 1, values[pivotloc]);
-				if(greateridx == -1) { /* no greater values to the left */
-					break;
-				} else {
-					swap(&values[greateridx], &values[i - 1]);
-					swap(&values[i - 1], &values[pivotloc]);
-					pivotloc--;
-				}
 			}
 		}
+		pivotloc = pivotend;
 
 /*		for(j = 0; j < count; j++)
 			printf("%i ", values[j]);
@@ -78,5 +76,7 @@ int quickSort(int *values, int count) {
 	}
 
 	__quickSort(values, count);
+
+	return(0);
 }
 

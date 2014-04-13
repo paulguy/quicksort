@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdint.h>
 #include <sys/time.h>
 
 #include "quicksort.h"
@@ -54,7 +55,7 @@ void fillRandom(int *buf, int count) {
 	int i;
 
 	for(i = 0; i < count; i++)
-		arand_random32(&buf[i], 32);
+		arand_random32(&((uint32_t *)buf)[i], 7);
 }
 
 int subTimeval(struct timeval *op1, struct timeval *op2, struct timeval *result) {
