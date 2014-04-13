@@ -16,25 +16,18 @@ int vars[5] = {2, 3, 1, 1, 1};
 
 void fillRandom(int *buf, int count);
 int subTimeval(struct timeval *op1, struct timeval *op2, struct timeval *result);
+void printAll(int *values, int count);
 
 int main(int argc, char **argv) {
-	int i;
 	struct timeval starttime, endtime, totaltime;
 
 	arand_init(time(NULL));
 
 	fprintf(stderr, "  Stack: ");
 	fillRandom(randomvars, RANDOMCOUNT);
-/*	for(i = 0; i < RANDOMCOUNT; i++)
-		printf("%i ", randomvars[i]);
-	printf("\n");*/
-
 	gettimeofday(&starttime, NULL);
 	quickSort(randomvars, RANDOMCOUNT, QS_COPY_STACK);
 	gettimeofday(&endtime, NULL);
-/*	for(i = 0; i < RANDOMCOUNT; i++)
-		printf("%i ", randomvars[i]);
-	printf("\n");*/
 	subTimeval(&endtime, &starttime, &totaltime);
 	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
 
@@ -48,9 +41,11 @@ int main(int argc, char **argv) {
 
 	fprintf(stderr, "Inplace: ");
 	fillRandom(randomvars, RANDOMCOUNT);
+//	printAll(randomvars, RANDOMCOUNT);
 	gettimeofday(&starttime, NULL);
 	quickSort(randomvars, RANDOMCOUNT, QS_INPLACE);
 	gettimeofday(&endtime, NULL);
+//	printAll(randomvars, RANDOMCOUNT);
 	subTimeval(&endtime, &starttime, &totaltime);
 	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
 
@@ -77,4 +72,12 @@ int subTimeval(struct timeval *op1, struct timeval *op2, struct timeval *result)
 	}
 
 	return(0);
+}
+
+void printAll(int *values, int count) {
+	int i;
+
+	for(i = 0; i < count; i++)
+		printf("%i ", values[i]);
+	printf("\n");
 }

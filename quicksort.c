@@ -45,11 +45,7 @@ static void __quickSort_inplace(int *values, int count) {
 				i--; /* need to evaluate the same spot again */
 				pivotloc--;
 				pivotend--;
-			} else if(values[i] == pivotval) {
-				swap(&values[i], &values[pivotloc - 1]);
-				i--; /* need to evaluate the same spot again */
-				pivotloc--;
-			} else if(values[i] < pivotval) {
+			} else {
 				continue;
 			}
 		}
