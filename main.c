@@ -23,30 +23,36 @@ int main(int argc, char **argv) {
 
 	arand_init(time(NULL));
 
+	fprintf(stderr, "  Stack: ");
 	fillRandom(randomvars, RANDOMCOUNT);
 /*	for(i = 0; i < RANDOMCOUNT; i++)
 		printf("%i ", randomvars[i]);
 	printf("\n");*/
 
 	gettimeofday(&starttime, NULL);
-	quickSort(randomvars, RANDOMCOUNT);
+	quickSort(randomvars, RANDOMCOUNT, QS_COPY_STACK);
 	gettimeofday(&endtime, NULL);
 /*	for(i = 0; i < RANDOMCOUNT; i++)
 		printf("%i ", randomvars[i]);
 	printf("\n");*/
-/*
-	for(i = 0; i < VARSCOUNT; i++)
-		printf("%i ", vars[i]);
-	printf("\n");
-	quickSort(vars, VARSCOUNT);
-	for(i = 0; i < VARSCOUNT; i++)
-		printf("%i ", vars[i]);
-	printf("\n");
-*/
 	subTimeval(&endtime, &starttime, &totaltime);
-/*	fprintf(stderr, "Start: %llis %ius\n", starttime.tv_sec, starttime.tv_usec);
-	fprintf(stderr, "  End: %llis %ius\n", endtime.tv_sec, endtime.tv_usec);*/
-	fprintf(stderr, "Total: %llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
+	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
+
+	fprintf(stderr, " Malloc: ");
+	fillRandom(randomvars, RANDOMCOUNT);
+	gettimeofday(&starttime, NULL);
+	quickSort(randomvars, RANDOMCOUNT, QS_COPY_MALLOC);
+	gettimeofday(&endtime, NULL);
+	subTimeval(&endtime, &starttime, &totaltime);
+	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
+
+	fprintf(stderr, "Inplace: ");
+	fillRandom(randomvars, RANDOMCOUNT);
+	gettimeofday(&starttime, NULL);
+	quickSort(randomvars, RANDOMCOUNT, QS_INPLACE);
+	gettimeofday(&endtime, NULL);
+	subTimeval(&endtime, &starttime, &totaltime);
+	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
 
 	exit(EXIT_SUCCESS);
 }
@@ -55,7 +61,7 @@ void fillRandom(int *buf, int count) {
 	int i;
 
 	for(i = 0; i < count; i++)
-		arand_random32(&((uint32_t *)buf)[i], 7);
+		arand_random32(&((uint32_t *)buf)[i], 32);
 }
 
 int subTimeval(struct timeval *op1, struct timeval *op2, struct timeval *result) {
