@@ -4,59 +4,68 @@
 
 #include "quicksort.h"
 
-static inline void swap(int *val1, int *val2) {
-	int swap;
-
-	swap = *val1;
-	*val1 = *val2;
-	*val2 = swap;
+static inline int compar(const void *op1, const void *op2) {
+	return(*(int *)op1 - *(int *)op2); /* return positive if op1 > op2 */
 }
 
-static void __quickSort_inplace(int *values, int count) {
+static inline void swap(void *val1, void *val2, int size) {
+	int swap[size];
+
+	if(val1 == val2) return;
+	memcpy(swap, val1, size);
+	memcpy(val1, val2, size);
+	memcpy(val2, swap, size);
+}
+
+static void __quickSort_inplace(void *values, int count, int size, int (*compar)(const void *, const void *)) {
 	int i, j;
-	int pivotloc, pivotend, pivotval;
+	int pivotloc, pivotend;
+	void *pivotval;
+	int offset;
 
 	if(count < 2) {
 		return;
 	} else if (count == 2) {
 /*		for(j = 0; j < count; j++)
-			printf("%i ", values[j]);
+			printf("%i ", ((int *)values)[j]);
 		printf("-> ");*/
 
-		if(values[0] > values[1])
-			swap(&values[0], &values[1]);
+		if(compar(&values[0], &values[size]) > 0)
+			swap(&values[0], &values[size], size);
 
 /*		for(j = 0; j < count; j++)
-			printf("%i ", values[j]);
+			printf("%i ", ((int *)values)[j]);
 		printf("\n");*/
 	} else {
 /*		for(j = 0; j < count; j++)
-			printf("%i ", values[j]);
+			printf("%i ", ((int *)values)[j]);
 		printf("-> ");*/
 
-		pivotloc = count - 1;
-		pivotend = count - 1;
-		pivotval = values[pivotloc];
+		pivotloc = (count - 1) * size;
+		pivotend = (count - 1) * size;
+		pivotval = &values[pivotloc];
+		offset = 0;
 
-		for(i = 0; i < pivotloc; i++) {
-			if(values[i] > pivotval) {
-				swap(&values[i], &values[pivotloc - 1]);
-				swap(&values[pivotloc - 1], &values[pivotend]);
-				i--; /* need to evaluate the same spot again */
-				pivotloc--;
-				pivotend--;
+		while(offset < pivotloc) {
+			if(compar(&values[offset], pivotval) > 0) {
+				swap(&values[offset], &values[pivotloc - size], size);
+				swap(&values[pivotloc - size], &values[pivotend], size);
+				pivotloc -= size; pivotval -= size;
+				pivotend -= size;
+			} else if(compar(&values[offset], pivotval) == 0) {
+				swap(&values[offset], &values[pivotloc - size], size);
+				pivotloc -= size; pivotval -= size;
 			} else {
-				continue;
+				offset += size;
 			}
 		}
-		pivotloc = pivotend;
 
 /*		for(j = 0; j < count; j++)
-			printf("%i ", values[j]);
+			printf("%i ", ((int *)values)[j]);
 		printf("\n");*/
 
-		__quickSort_inplace(values, pivotloc);
-		__quickSort_inplace(&values[pivotloc], count - pivotloc);
+		__quickSort_inplace(values, pivotloc / size, size, compar);
+		__quickSort_inplace(&values[pivotend], count - (pivotend / size), size, compar);
 	}
 }
 
@@ -72,7 +81,7 @@ static void __quickSort_copy_malloc(int *values, int count) {
 		return;
 	} else if(count == 2) {
 		if(values[0] > values[1])
-			swap(&values[0], &values[1]);
+			swap(&values[0], &values[1], sizeof(int));
 	} else {
 /*		for(j = 0; j < count; j++)
 			printf("%i ", values[j]);
@@ -91,15 +100,18 @@ static void __quickSort_copy_malloc(int *values, int count) {
 			if(values[i] < pivotVal) {
 				left[leftIndex] = values[i];
 				leftIndex++;
-			} else {
+			} else if(values[i] == pivotVal) {
+				continue;
+			} else { /* > */
 				right[rightIndex] = values[i];
 				rightIndex++;
 			}
 		}
 
 		memcpy(values, left, leftIndex * sizeof(int));
-		values[leftIndex] = pivotVal;
-		memcpy(&values[leftIndex + 1], right, rightIndex * sizeof(int));
+		for(i = leftIndex; i < count - rightIndex; i++)
+			values[i] = pivotVal;
+		memcpy(&values[count - rightIndex], right, rightIndex * sizeof(int));
 /*		for(j = 0; j < count; j++)
 			printf("%i ", values[j]);
 		printf("\n");*/
@@ -126,15 +138,18 @@ static void __quickSort_copy_stack_part(int *values, int count, int *leftIndex) 
 		if(values[i] < pivotVal) {
 			left[*leftIndex] = values[i];
 			(*leftIndex)++;
-		} else {
+		} else if(values[i] == pivotVal) {
+			continue;
+		} else { /* > */
 			right[rightIndex] = values[i];
 			rightIndex++;
 		}
 	}
 
 	memcpy(values, left, *leftIndex * sizeof(int));
-	values[*leftIndex] = pivotVal;
-	memcpy(&values[*leftIndex + 1], right, rightIndex * sizeof(int));
+	for(i = *leftIndex; i < count - rightIndex; i++)
+		values[i] = pivotVal;
+	memcpy(&values[count - rightIndex], right, rightIndex * sizeof(int));
 }
 
 static void __quickSort_copy_stack(int *values, int count) {
@@ -145,7 +160,7 @@ static void __quickSort_copy_stack(int *values, int count) {
 		return;
 	} else if(count == 2) {
 		if(values[0] > values[1])
-			swap(&values[0], &values[1]);
+			swap(&values[0], &values[1], sizeof(int));
 	} else {
 /*		for(j = 0; j < count; j++)
 			printf("%i ", values[j]);
@@ -160,20 +175,23 @@ static void __quickSort_copy_stack(int *values, int count) {
 	}
 }
 
-int quickSort(int *values, int count, QSMode mode) {
+int quickSort(void *values, int count, int size, QSMode mode) {
 	if(count < 2 || values == NULL) {
 		return(-1);
 	}
 
 	switch(mode) {
 		case QS_INPLACE:
-			__quickSort_inplace(values, count);
+			__quickSort_inplace(values, count, size, compar);
 			break;
-		case QS_COPY_MALLOC:
+/*		case QS_COPY_MALLOC:
 			__quickSort_copy_malloc(values, count);
 			break;
 		case QS_COPY_STACK:
 			__quickSort_copy_stack(values, count);
+			break;*/
+		case QS_GLIBC:
+			qsort(values, count, size, compar);
 			break;
 	}
 

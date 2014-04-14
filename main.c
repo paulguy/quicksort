@@ -22,28 +22,46 @@ int main(int argc, char **argv) {
 	struct timeval starttime, endtime, totaltime;
 
 	arand_init(time(NULL));
-
-	fprintf(stderr, "  Stack: ");
-	fillRandom(randomvars, RANDOMCOUNT);
-	gettimeofday(&starttime, NULL);
-	quickSort(randomvars, RANDOMCOUNT, QS_COPY_STACK);
-	gettimeofday(&endtime, NULL);
-	subTimeval(&endtime, &starttime, &totaltime);
-	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
+/*
+	if(RANDOMCOUNT > 1000000) {
+		fprintf(stderr, "Skipping stack allocation method.\n");
+	} else {
+		fprintf(stderr, "  Stack: ");
+		fillRandom(randomvars, RANDOMCOUNT);
+	//	printAll(randomvars, RANDOMCOUNT);
+		gettimeofday(&starttime, NULL);
+		quickSort(randomvars, RANDOMCOUNT, QS_COPY_STACK);
+		gettimeofday(&endtime, NULL);
+	//	printAll(randomvars, RANDOMCOUNT);
+		subTimeval(&endtime, &starttime, &totaltime);
+		fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
+	}
 
 	fprintf(stderr, " Malloc: ");
 	fillRandom(randomvars, RANDOMCOUNT);
+//	printAll(randomvars, RANDOMCOUNT);
 	gettimeofday(&starttime, NULL);
 	quickSort(randomvars, RANDOMCOUNT, QS_COPY_MALLOC);
 	gettimeofday(&endtime, NULL);
+//	printAll(randomvars, RANDOMCOUNT);
 	subTimeval(&endtime, &starttime, &totaltime);
 	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
-
+*/
 	fprintf(stderr, "Inplace: ");
 	fillRandom(randomvars, RANDOMCOUNT);
 //	printAll(randomvars, RANDOMCOUNT);
 	gettimeofday(&starttime, NULL);
-	quickSort(randomvars, RANDOMCOUNT, QS_INPLACE);
+	quickSort(randomvars, RANDOMCOUNT, sizeof(int), QS_INPLACE);
+	gettimeofday(&endtime, NULL);
+//	printAll(randomvars, RANDOMCOUNT);
+	subTimeval(&endtime, &starttime, &totaltime);
+	fprintf(stderr, "%llis %ius\n", totaltime.tv_sec, totaltime.tv_usec);
+
+	fprintf(stderr, "  glibc: ");
+	fillRandom(randomvars, RANDOMCOUNT);
+//	printAll(randomvars, RANDOMCOUNT);
+	gettimeofday(&starttime, NULL);
+	quickSort(randomvars, RANDOMCOUNT, sizeof(int), QS_GLIBC);
 	gettimeofday(&endtime, NULL);
 //	printAll(randomvars, RANDOMCOUNT);
 	subTimeval(&endtime, &starttime, &totaltime);
@@ -55,8 +73,10 @@ int main(int argc, char **argv) {
 void fillRandom(int *buf, int count) {
 	int i;
 
-	for(i = 0; i < count; i++)
-		arand_random32(&((uint32_t *)buf)[i], 32);
+	for(i = 0; i < count; i++) {
+		arand_random32(&((uint32_t *)buf)[i], 31);
+		buf[i] %= 100;
+	}
 }
 
 int subTimeval(struct timeval *op1, struct timeval *op2, struct timeval *result) {
